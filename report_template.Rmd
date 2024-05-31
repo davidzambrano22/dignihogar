@@ -1,0 +1,15 @@
+---
+title: "User Information Report"
+output: html_document
+params:
+  name: "Default Name"
+  age: 25
+  gender: "Other"
+---
+
+## User Information
+
+- **Name:** `r params$name`
+- **Age:** `r params$age`
+- **Gender:** `r params$gender`
+

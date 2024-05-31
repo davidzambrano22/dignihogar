@@ -1,0 +1,12 @@
+name: pruebas
+title: pruebas
+username: mnccolombia
+account: mnccolombia
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 12103539
+bundleId: 8684892
+url: https://mnccolombia.shinyapps.io/pruebas/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

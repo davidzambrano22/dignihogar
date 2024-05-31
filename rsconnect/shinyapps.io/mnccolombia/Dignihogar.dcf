@@ -1,0 +1,12 @@
+name: Dignihogar
+title: Dignihogar
+username: mnccolombia
+account: mnccolombia
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 12103516
+bundleId: 8685613
+url: https://mnccolombia.shinyapps.io/Dignihogar/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
