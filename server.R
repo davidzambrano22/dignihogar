@@ -92,10 +92,10 @@ server <- function(input, output, session) {
           div(style = "font-size: 20px;",
             column(6, offset = 3,
               textInput("nombres_trabajador", "Nombres del trabajador:",
-                        # value = "Andrés",
+                        value = "Andrés",
                         width = "600px"),
               textInput("apellidos_trabajador", "Apellidos del trabajador:",
-                        # value = "Arias",
+                        value = "Arias",
                         width = "600px"),
               selectInput("tipo_documento_trabajador", "Tipo de Documento del Trabajador:",
                           choices = c(
@@ -155,7 +155,7 @@ server <- function(input, output, session) {
       submit_infoTrabajador(TRUE)
     }
   })
-  
+
 
 
   observeEvent(submit_infoTrabajador(), {
@@ -175,10 +175,10 @@ server <- function(input, output, session) {
           div(style = "font-size: 20px;",
               column(6, offset = 3,
                      textInput("nombres_empleador", "Nombres del empleador:",
-                               # value = "Angélica",
+                               value = "Angélica",
                                width = "600px"),
                          textInput("apellidos_empleador", "Apellidos del empleador:",
-                                   # value = "Sierra",
+                                   value = "Sierra",
                                    width = "600px"),
                          selectInput("tipo_documento_empleador", "Tipo de documento del empleador:",
                                      choices = c(
@@ -245,8 +245,8 @@ server <- function(input, output, session) {
       submit_infoEmpleador(TRUE)
     }
   })
-  
-  
+
+
   
   observeEvent(submit_infoEmpleador(), {
     output$error_message <- renderText({ "" })
@@ -286,6 +286,8 @@ server <- function(input, output, session) {
                                   width = "600px"
 
                    ),
+                   textAreaInput("funciones_adicionales", "Sin embargo, de ser de mutuo acuerdo, puede describir de manera opcional las funciones o responsabilidades del trabajador de servicio doméstico adicionales:",
+                                 width = "600px"),
                    selectInput("tipo_vinculacion", "Sobre el tipo de vinculación. El trabajador de servicio doméstico realizará su labor bajo la vinculación laboral:",
                                choices = c(
                                  "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)",
@@ -293,13 +295,7 @@ server <- function(input, output, session) {
                                ), width = "600px"
 
                    ),
-                   selectInput("respuesta_dias", "**Si su respuesta es por días** ¿Quién será el encargado de realizar los trámites de seguridad social?",
-                               choices = c(
-                                 "El Trabajador",
-                                 "El Empleador"
-                               ),
-                               width = "600px"),
-                   tags$p("**Tenga en cuenta que en cualquiera de los casos ambos deben aportar para el pago de seguridad y parafiscales del empleado.", style = "font-size: 18px;"),
+                   uiOutput("out_respuestaDias"),
                    div(style = "height: 50px;"),
                    div(style = "text-align: justify;",
                        column(5),
@@ -312,6 +308,20 @@ server <- function(input, output, session) {
           )
         )
       })
+    }
+  })
+  
+  output$out_respuestaDias <- renderUI({
+    if (input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)"){
+      tagList(
+      selectInput("respuesta_dias", "**Si su respuesta es por días** ¿Quién será el encargado de realizar los trámites de seguridad social?",
+                  choices = c(
+                    "El Trabajador",
+                    "El Empleador"
+                  ),
+                  width = "600px"),
+      tags$p("**Tenga en cuenta que en cualquiera de los casos ambos deben aportar para el pago de seguridad y parafiscales del empleado.", style = "font-size: 18px;"),
+      )
     }
   })
   
@@ -388,7 +398,7 @@ server <- function(input, output, session) {
     submit_infoEmpleo_2(TRUE)
     }
   })
-  
+
   observeEvent(submit_infoEmpleo_2(), {
     if (submit_infoEmpleo_2()){
       output$error_message <- renderText({ "" })
@@ -396,122 +406,243 @@ server <- function(input, output, session) {
       # dbExecute(conn, "INSERT INTO users (name, age, gender) VALUES (?, ?, ?)",
       #           params = list(input$name, input$age, input$gender))
       
-      output$page_content <- renderUI({
-        tagList(
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$h2(sprintf("CONTRATO DE TRABAJO ENTRE %s %s y %s %s ",
-                         toupper(input$nombres_trabajador),
-                         toupper(input$apellidos_trabajador),
-                         toupper(input$nombres_empleador),
-                         toupper(input$apellidos_empleador)
-                         ),
-                  style = "text-align: center;"
-          ),
-          tags$br(),
-          tags$br(),
-          tags$p(sprintf("Entre las partes, por un lado %s %s, quien en adelante y para los efectos del presente contrato se denomina EL EMPLEADOR, y por el otro, %s %s, quien en adelante y para los efectos del presente contrato se denomina EL TRABAJADOR, identificados como aparece al pie de las firmas, hemos acordado suscribir este contrato de trabajo, el cual se regirá por las siguientes cláusulas:",
-                         toupper(input$nombres_empleador),
-                         toupper(input$apellidos_empleador),
-                         toupper(input$nombres_trabajador),
-                         toupper(input$apellidos_trabajador)
-                         ),
-                 style = "font-size: 21px; text-align: justify;"
-                 ),
-          tags$p(tags$b("Primera:", style = "font-size: 21px;"),
-                 "Objeto. El presente es un contrato de trabajo tiene por finalidad la prestación de servicios domésticos por parte del TRABAJADOR en la forma y condiciones previstas por el EMPLEADOR.",
-                 style = "font-size: 21px; text-align: justify;"
-                 ),
-          tags$p(
-            tags$b("Segunda:", style = "font-size: 21px;"),
-            sprintf("Lugar de prestación del servicio. La prestación del servicio la hará el TRABAJADOR en la %s ", toupper(input$direccion_trabajo)),
+      if (input$modalidad_prestacion_servicios == "Interna (vivirá en la residencia en que preste sus servicios)" || input$tipo_vinculacion == "Fija (es decir el trabajador de servicio domestica trabaja en un solo hogar varios días a la semana" || input$respuesta_dias == "El Empleador") {
+        output$page_content <- renderUI({
+          tagList(
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$h2(sprintf("CONTRATO DE TRABAJO ENTRE %s %s y %s %s DEPENDIENTE",
+                            toupper(input$nombres_trabajador),
+                            toupper(input$apellidos_trabajador),
+                            toupper(input$nombres_empleador),
+                            toupper(input$apellidos_empleador)
+            ),
+            style = "text-align: center;"
+            ),
+            tags$br(),
+            tags$br(),
+            tags$p(sprintf("Entre las partes, por un lado %s %s, quien en adelante y para los efectos del presente contrato se denomina EL EMPLEADOR, y por el otro, %s %s, quien en adelante y para los efectos del presente contrato se denomina EL TRABAJADOR, identificados como aparece al pie de las firmas, hemos acordado suscribir este contrato de trabajo, el cual se regirá por las siguientes cláusulas:",
+                           toupper(input$nombres_empleador),
+                           toupper(input$apellidos_empleador),
+                           toupper(input$nombres_trabajador),
+                           toupper(input$apellidos_trabajador)
+            ),
             style = "font-size: 21px; text-align: justify;"
-          ),
-          tags$p(
-            tags$b("Tercera:", style = "font-size: 21px;"),
-            sprintf("El EMPLEADOR deberá pagar al TRABAJADOR, a título de remuneración por las actividades un monto de %s ", input$salario_mensual),
-            style = "font-size: 21px; text-align: justify;"
-          ),
-          tags$p(
-            sprintf("La forma de pago del salario señalado se hará directamente por el EMPLEADOR al TRABAJADOR, así: %s. El pago se hará %s", toupper(input$tiempo_pagos), toupper(input$modalidad_pagos)),
-            style = "font-size: 21px; text-align: justify;"
-          ),
-          tags$p(
-            sprintf("Parágrafo 1. El EMPLEADOR deberá pagar al TRABAJADOR todas las prestaciones sociales establecidas por ley: cesantías, prima, vacaciones y auxilio de transporte, de ser el caso. El pago de dichas prestaciones se hará en proporción a los días trabajados y conforme al salario recibido.", toupper(input$tiempo_pagos), toupper(input$modalidad_pagos)),
-            style = "font-size: 21px; text-align: justify;"
-          ),
-          tags$p(
-            sprintf("Parágrafo 2. De igual forma, deberá hacer los aportes de seguridad social en salud, pensión y riesgos laborales, en proporción a los días trabajados y conforme al salario recibido.  Esto sin perjuicio que el trabajador esté afiliado al Sisbén.", toupper(input$tiempo_pagos), toupper(input$modalidad_pagos)),
-            style = "font-size: 21px; text-align: justify;"
-          ),
-          tags$p(
-            tags$b("Cuarta:", style = "font-size: 21px;"),
-            "Obligaciones de las partes",
-            style = "font-size: 21px; text-align: justify;"
-          ),
-          tags$ol(type="A",
-                  tags$li("Obligaciones del EMPLEADOR:",
-                          tags$ul(
-                            tags$li("Pagar en la forma prevista al TRABAJADOR, el salario, junto con las prestaciones sociales."),
-                            tags$li("Afiliar y pagar los respectivos aportes al sistema de seguridad social integral.")
-                          ),
-                          style = "font-size: 21px;"
-                          ),
-                  tags$li("Obligaciones del TRABAJADOR:",
-                          tags$ul(
-                            tags$li("Recibir, según lo pactado, el salario")
-                          ),
-                          tags$ul(lapply(input$funciones_trabajador, function(choice){
-                            tags$li(choice)})
-                          ),
-                          style = "font-size: 21px;"
-                  ),
-          ),
-          tags$p(
-            tags$b("Quinta:", style = "font-size: 21px;"),
-            "Terminación del contrato. Este contrato podrá terminar unilateralmente por cualquiera de las partes, si se configuran algunas situaciones previstas en el artículo 62 del Código Sustantivo del Trabajo.",
-            style = "font-size: 21px; text-align: justify;"
-          ),
-          tags$p(
-            tags$b("Sexta:", style = "font-size: 21px;"),
-            "Vigencia. Este contrato tendrá la vigencia de (especificar el término durante el cual estará vigente). ",
-            style = "font-size: 21px; text-align: justify;"
-          ),
-          tags$p("Se firma a los (días) del mes de (mes) del (año).", style = "font-size: 21px; text-align: justify;"),
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$div(
-            # style = "display: inline-block; text-align: center; margin-right: 50px;",
-            column(2, offset=2,
-                   tags$hr(style = "border: none; border-top: 1px solid #000; width: 200px;"),
-                   tags$p(paste(input$nombres_empleador, input$apellidos_empleador), style = "font-size: 21px;")
-                   ),
-            column(2, offset=4,
-                   tags$hr(style = "border: none; border-top: 1px solid #000; width: 200px;"),
-                   tags$p(paste(input$nombres_trabajador, input$apellidos_trabajador), style = "font-size: 21px;")
-            )
-          ),
-          div(style="height: 160px;"),
-          div(style = "text-align: justify;",
-              column(5),
-              column(6,
-                     actionButton("go_infoTable", "Continuar", style = "font-size: 20px; text-align: center;") 
+            ),
+            tags$p(tags$b("Primera:", style = "font-size: 21px;"),
+                   "Objeto. El presente es un contrato de trabajo tiene por finalidad la prestación de servicios domésticos por parte del TRABAJADOR en la forma y condiciones previstas por el EMPLEADOR.",
+                   style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              tags$b("Segunda:", style = "font-size: 21px;"),
+              sprintf("Lugar de prestación del servicio. La prestación del servicio la hará el TRABAJADOR en la %s ", toupper(input$direccion_trabajo)),
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              tags$b("Tercera:", style = "font-size: 21px;"),
+              sprintf("El EMPLEADOR deberá pagar al TRABAJADOR, a título de remuneración por las actividades un monto de %s ", input$salario_mensual),
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              sprintf("La forma de pago del salario señalado se hará directamente por el EMPLEADOR al TRABAJADOR, así: %s. El pago se hará %s", toupper(input$tiempo_pagos), toupper(input$modalidad_pagos)),
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              sprintf("Parágrafo 1. El EMPLEADOR deberá pagar al TRABAJADOR todas las prestaciones sociales establecidas por ley: cesantías, prima, vacaciones y auxilio de transporte, de ser el caso. El pago de dichas prestaciones se hará en proporción a los días trabajados y conforme al salario recibido.", toupper(input$tiempo_pagos), toupper(input$modalidad_pagos)),
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              sprintf("Parágrafo 2. De igual forma, deberá hacer los aportes de pensión y riesgos laborales, en proporción a los días trabajados y conforme al salario recibido. El pago de riesgos profesionales y aportes a caja de compensación será por el mes completo. Esto sin perjuicio que el trabajador esté afiliado al Sisbén.", toupper(input$tiempo_pagos), toupper(input$modalidad_pagos)),
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              tags$b("Cuarta:", style = "font-size: 21px;"),
+              "Obligaciones de las partes",
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$ol(type="A",
+                    tags$li("Obligaciones del EMPLEADOR:",
+                            tags$ul(
+                              tags$li("Pagar en la forma prevista al TRABAJADOR, el salario, junto con las prestaciones sociales."),
+                              tags$li("Afiliar y pagar los respectivos aportes al sistema de seguridad social integral.")
+                            ),
+                            style = "font-size: 21px;"
+                    ),
+                    tags$li("Obligaciones del TRABAJADOR:",
+                            tags$ul(
+                              tags$li("Recibir, según lo pactado, el salario")
+                            ),
+                            tags$ul(lapply(input$funciones_trabajador, function(choice){
+                              tags$li(choice)})
+                            ),
+                            style = "font-size: 21px;"
+                    ),
+            ),
+            tags$p(
+              tags$b("Quinta:", style = "font-size: 21px;"),
+              "Terminación del contrato. Este contrato podrá terminar unilateralmente por cualquiera de las partes, si se configuran algunas situaciones previstas en el artículo 62 del Código Sustantivo del Trabajo.",
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              tags$b("Sexta:", style = "font-size: 21px;"),
+              "Vigencia. Este contrato tendrá la vigencia de (especificar el término durante el cual estará vigente). ",
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p("Se firma a los (días) del mes de (mes) del (año).", style = "font-size: 21px; text-align: justify;"),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$div(
+              # style = "display: inline-block; text-align: center; margin-right: 50px;",
+              column(2, offset=2,
+                     tags$hr(style = "border: none; border-top: 1px solid #000; width: 200px;"),
+                     tags$p(paste(input$nombres_empleador, input$apellidos_empleador), style = "font-size: 21px;")
+              ),
+              column(2, offset=4,
+                     tags$hr(style = "border: none; border-top: 1px solid #000; width: 200px;"),
+                     tags$p(paste(input$nombres_trabajador, input$apellidos_trabajador), style = "font-size: 21px;")
               )
-          ),
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$br()
-        )
-      })
+            ),
+            div(style="height: 160px;"),
+            div(style = "text-align: justify;",
+                column(5),
+                column(6,
+                       actionButton("go_infoTable", "Continuar", style = "font-size: 20px; text-align: center;") 
+                )
+            ),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br()
+          )
+        })
+      }
+      else (input$respuesta_dias == "El Trabajador") {
+        output$page_content <- renderUI({
+          tagList(
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$h2(sprintf("CONTRATO DE TRABAJO ENTRE %s %s y %s %s INDEPENDIENTE",
+                            toupper(input$nombres_trabajador),
+                            toupper(input$apellidos_trabajador),
+                            toupper(input$nombres_empleador),
+                            toupper(input$apellidos_empleador)
+            ),
+            style = "text-align: center;"
+            ),
+            tags$br(),
+            tags$br(),
+            tags$p(sprintf("Entre las partes, por un lado %s %s, quien en adelante y para los efectos del presente contrato se denomina EL EMPLEADOR, y por el otro, %s %s, quien en adelante y para los efectos del presente contrato se denomina EL TRABAJADOR, identificados como aparece al pie de las firmas, hemos acordado suscribir este contrato de trabajo, el cual se regirá por las siguientes cláusulas:",
+                           toupper(input$nombres_empleador),
+                           toupper(input$apellidos_empleador),
+                           toupper(input$nombres_trabajador),
+                           toupper(input$apellidos_trabajador)
+            ),
+            style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(tags$b("Primera:", style = "font-size: 21px;"),
+                   "Objeto. El presente es un contrato de trabajo tiene por finalidad la prestación de servicios domésticos por parte del TRABAJADOR en la forma y condiciones previstas por el EMPLEADOR.",
+                   style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              tags$b("Segunda:", style = "font-size: 21px;"),
+              sprintf("Lugar de prestación del servicio. La prestación del servicio la hará el TRABAJADOR en la %s ", toupper(input$direccion_trabajo)),
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              tags$b("Tercera:", style = "font-size: 21px;"),
+              sprintf("El EMPLEADOR deberá pagar al TRABAJADOR, a título de remuneración por las actividades un monto de %s ", input$salario_mensual),
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              sprintf("La forma de pago del salario señalado se hará directamente por el EMPLEADOR al TRABAJADOR, así: %s. El pago se hará %s", toupper(input$tiempo_pagos), toupper(input$modalidad_pagos)),
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              sprintf("Parágrafo 1. El EMPLEADOR deberá pagar al TRABAJADOR todas las prestaciones sociales establecidas por ley.", toupper(input$tiempo_pagos), toupper(input$modalidad_pagos)),
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              sprintf("Parágrafo 2. El TRABAJADOR De igual forma, deberá hacer los aportes de seguridad social en salud, pensión y riesgos laborales, en proporción a los días trabajados y conforme al salario recibido.  Esto sin perjuicio que el trabajador esté afiliado al Sisbén.", toupper(input$tiempo_pagos), toupper(input$modalidad_pagos)),
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              tags$b("Cuarta:", style = "font-size: 21px;"),
+              "Obligaciones de las partes",
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$ol(type="A",
+                    tags$li("Obligaciones del EMPLEADOR:",
+                            tags$ul(
+                              tags$li("Pagar en la forma prevista al TRABAJADOR el salario."),
+                              tags$li("Respetar las condiciones.")
+                            ),
+                            style = "font-size: 21px;"
+                    ),
+                    tags$li("Obligaciones del TRABAJADOR:",
+                            tags$ul(
+                              tags$li("Recibir, según lo pactado, el salario"),
+                              tags$li("Desempeñar las actividades propias del objeto, entre las cuales se encuentran Barrer, trapear y encerar pisos de instalaciones domésticas. Limpiar, brillar y sellar, puertas, muebles, ventanas y otros accesorios de instalaciones domésticas. Lavar, planchar y remendar lencería, ropa de cama y prendas de uso personal. Preparar, cocinar y servir alimentos y bebidas en instalaciones domésticas. Lavar vajillas y utensilios de cocina en instalaciones domésticas. Lavar, desinfectar y desodorizar cocinas, cuartos de baño, muebles y enseres en casas de familia. Tender camas, cambiar sábanas, poner toallas limpias y artículos de tocador en instalaciones domésticas. Desempolvar y aspirar muebles, alfombras, tapetes, cortinas y tapizados en instalaciones domésticas.")
+                            ),
+                            tags$ul(lapply(input$funciones_trabajador, function(choice){
+                              tags$li(choice)})
+                            ),
+                            style = "font-size: 21px;"
+                    ),
+            ),
+            tags$p(
+              tags$b("Quinta:", style = "font-size: 21px;"),
+              "Terminación del contrato. Este contrato podrá terminar unilateralmente por cualquiera de las partes, si se configuran algunas situaciones previstas en el artículo 62 del Código Sustantivo del Trabajo.",
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p(
+              tags$b("Sexta:", style = "font-size: 21px;"),
+              "Vigencia. Este contrato tendrá la vigencia de (especificar el término durante el cual estará vigente). ",
+              style = "font-size: 21px; text-align: justify;"
+            ),
+            tags$p("Se firma a los (días) del mes de (mes) del (año).", style = "font-size: 21px; text-align: justify;"),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$div(
+              # style = "display: inline-block; text-align: center; margin-right: 50px;",
+              column(2, offset=2,
+                     tags$hr(style = "border: none; border-top: 1px solid #000; width: 200px;"),
+                     tags$p(paste(input$nombres_empleador, input$apellidos_empleador), style = "font-size: 21px;")
+              ),
+              column(2, offset=4,
+                     tags$hr(style = "border: none; border-top: 1px solid #000; width: 200px;"),
+                     tags$p(paste(input$nombres_trabajador, input$apellidos_trabajador), style = "font-size: 21px;")
+              )
+            ),
+            div(style="height: 160px;"),
+            div(style = "text-align: justify;",
+                column(5),
+                column(6,
+                       actionButton("go_infoTable", "Continuar", style = "font-size: 20px; text-align: center;") 
+                )
+            ),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br()
+          )
+        })
+      }
     }
   })
   
