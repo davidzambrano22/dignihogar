@@ -54,11 +54,20 @@ server <- function(input, output, session) {
   # Initialize the page_content with a welcome message
   output$page_content <- renderUI({
     tagList(
-      div(column(9, offset = 2,
-            tags$img(src = "logos.png", height = 180, width = 700, style = "text-align: center;")
-            )
-          ),
-      div(style = "height: 200px"),
+      tags$div(style = "background-image: url('logo_urosario.png'); 
+               background-size: cover; 
+               background-position: center;
+               width: 100%; 
+               height: 100vh;",
+      fluidRow(
+        column(4,
+            tags$img(src = "logo_urosario.png", height = 150, width = 500, style = "text-align: center;")
+            ),
+        column(4, offset = 4,
+               tags$img(src = "LogoCODES.png", height = 150, width = 500, style = "text-align: center;")
+               ),
+        ),
+      div(style = "height: 100px"),
       tags$br(),
       tags$h1("DIGNIHOGAR",
               style = "font-size: 45px; text-align: center; font-weight: bold; color: #B22222;"
@@ -71,11 +80,11 @@ server <- function(input, output, session) {
     div(style = "height: 50px"),
     div(style = "height: 30px"),
     div(style = "text-align: justify;",
-        column(5),
-        column(6,
+        column(6, offset = 5,
                actionButton("go_dataPolicy", "Continuar", style = "font-size: 20px; text-align: center;") # tratamiento_datos
                )
         )
+    )
     )
   })
   
