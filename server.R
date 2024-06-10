@@ -5,7 +5,40 @@ library(pagedown)
 
 server <- function(input, output, session) {
   conn <- dbConnect(RSQLite::SQLite(), "user_data.sqlite")
-  dbExecute(conn, "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER, gender TEXT)")
+  dbExecute(conn, "CREATE TABLE IF NOT EXISTS users_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombreTrabajador TEXT,
+            apellidosTrabajador TEXT ,
+            tipoDocTrabajador TEXT,
+            numeroDocumentoTrabajador TEXT,
+            ciudadTrabajador TEXT,
+            direccionTrabajador TEXT,
+            correoTrabajador TEXT,
+            duracionContrato TEXT,
+            nombreEmpleador TEXT,
+            apellidosEmpleador TEXT,
+            tipoDocEmpleador TEXT,
+            numeroDocumentoEmpleador TEXT,
+            ciudadEmpleador TEXT,
+            direccionEmpleador TEXT,
+            correoEmpleador TEXT,
+            lugarPrestacion TEXT,
+            direccionTrabajo TEXT,
+            funcionesTrabajador TEXT  DEFAULT \"No responde\",
+            funcionesAdicionales TEXT,
+            modalidadTrabajo TEXT,
+            tipoVinculacion TEXT,
+            encargadoSeguridad TEXT DEFAULT \"No aplica\",
+            salario INTEGER DEFAULT 0, 
+            beneficios TEXT DEFAULT \"No responde\",
+            horarioLaboral TEXT,
+            diasTrabajo INTEGER DEFAULT 0,
+            tiempoPago TEXT,
+            modalidadPago TEXT,
+            numeroCuenta TEXT DEFAULT \"No aplica\",
+            tipoCuenta TEXT DEFAULT \"No aplica\",
+            banco TEXT DEFAULT \"No aplica\"
+            )")
   
   # Reactive value to control the visibility of the download and data policy agreed buttons
   formSubmitted <- reactiveVal(FALSE)
@@ -106,10 +139,24 @@ server <- function(input, output, session) {
                           ),
                           width = "500px"
               ),
-              textInput("numero_documento_trabajador", "Número de documento de identidad del trabajador:", width = "600px"),
-              textInput("ciudad_trabajador", "Ciudad de residencia del trabajador:", width = "600px"),
-              textInput("direccion_trabajador", "Dirección de residencia del trabajador:", width = "600px"),
-              email_input("correo_trabajador", "Correo electrónico del trabajador:", width = "600px"),
+              textInput("numero_documento_trabajador", "Número de documento de identidad del trabajador:",
+                        value = "A",
+                        width = "600px"),
+              textInput("ciudad_trabajador", "Ciudad de residencia del trabajador:",
+                        value = "A",
+                        width = "600px"),
+              textInput("direccion_trabajador", "Dirección de residencia del trabajador:",
+                        value = "A",
+                        width = "600px"),
+              email_input("correo_trabajador", "Correo electrónico del trabajador:",
+                          value = "A",
+                          width = "600px"),
+              selectInput("duracion_contrato", "El contrato tendrá una duración:",
+                          choices = c(
+                            "Indefinida (contrato a término indefinido)",
+                            "Fija (contrato con una fecha de terminación)"
+                          ),
+                          width = "600px"),
               div(style = "height: 50px;"),
               div(style = "text-align: justify;",
                   column(5),
@@ -189,10 +236,18 @@ server <- function(input, output, session) {
                                      ),
                                      width = "600px"
                          ),
-                         textInput("numero_documento_empleador", "Número de documento de identidad del empleador:", width = "600px"),
-                         textInput("ciudad_empleador", "Ciudad de residencia del empleador:", width = "600px"),
-                         textInput("direccion_empleador", "Dirección de residencia del empleador:", width = "600px"),
-                         email_input("correo_empleador", "Correo electrónico del empleador:", width = "600px"),
+                         textInput("numero_documento_empleador", "Número de documento de identidad del empleador:",
+                                   value = "A",
+                                   width = "600px"),
+                         textInput("ciudad_empleador", "Ciudad de residencia del empleador:",
+                                   value = "A",
+                                   width = "600px"),
+                         textInput("direccion_empleador", "Dirección de residencia del empleador:",
+                                   value = "A",
+                                   width = "600px"),
+                         email_input("correo_empleador", "Correo electrónico del empleador:",
+                                     value = "A",
+                                     width = "600px"),
                          selectInput("lugar_prestacion_servicios", "El trabajador de servicio doméstico prestará sus servicios en:",
                                      choices = c(
                                        "El domicilio de la persona que lo contrata (empleador)",
@@ -246,7 +301,6 @@ server <- function(input, output, session) {
     }
   })
 
-
   
   observeEvent(submit_infoEmpleador(), {
     output$error_message <- renderText({ "" })
@@ -287,6 +341,7 @@ server <- function(input, output, session) {
 
                    ),
                    textAreaInput("funciones_adicionales", "Sin embargo, de ser de mutuo acuerdo, puede describir de manera opcional las funciones o responsabilidades del trabajador de servicio doméstico adicionales:",
+                                 value = "A",
                                  width = "600px"),
                    selectInput("tipo_vinculacion", "Sobre el tipo de vinculación. El trabajador de servicio doméstico realizará su labor bajo la vinculación laboral:",
                                choices = c(
@@ -329,6 +384,7 @@ server <- function(input, output, session) {
     submit_infoEmpleo_1(TRUE)
   })
 
+
   observeEvent(submit_infoEmpleo_1(), {
     if (submit_infoEmpleo_1()){
       output$error_message <- renderText({ "" })
@@ -344,13 +400,17 @@ server <- function(input, output, session) {
               column(6, offset = 3,
                 numericInput("salario_mensual",
                              "Salario mensual que se pagará al trabajador de servicio doméstico (en pesos, sin incluir auxilio de transporte, ni los beneficios):",
-                             value = NULL,
+                             value = 1800000,
                              width = "600px"),
                 textInput("beneficios",
-                          "Si existe algún pago o beneficio (vivienda, alimentación, medicina prepagada, etc.) que no haga parte del salario del trabajador de servicio doméstico, indíquelo acá:", width = "600px"),
+                          "Si existe algún pago o beneficio (vivienda, alimentación, medicina prepagada, etc.) que no haga parte del salario del trabajador de servicio doméstico, indíquelo acá:",
+                          value = "A",
+                          width = "600px"),
                 textInput("horario_laboral",
-                          "Especifique el horario laboral: ej. Lunes a viernes de 8am a 5pm (Recuerde que el horario no debe superar las 8 horas diarias)", width = "600px"),
-                numericInput("días_trabajo", "¿Cuántos días trabajará al mes?", value = NULL, width = "600px"),
+                          "Especifique el horario laboral: ej. Lunes a viernes de 8am a 5pm (Recuerde que el horario no debe superar las 8 horas diarias)",
+                          value = "A",
+                          width = "600px"),
+                numericInput("días_trabajo", "¿Cuántos días trabajará al mes?", value = 23, width = "600px"),
                 selectInput("tiempo_pagos", "¿Cuándo se realizarán los pagos de salario?:",
                             choices = c(
                               "quincenal (el 15 y 30 de cada mes)",
@@ -365,6 +425,7 @@ server <- function(input, output, session) {
                             ), width = "600px"
                             
                 ),
+                uiOutput("tipo_pago"),
                 div(style = "height: 50px;"),
                 div(style = "text-align: justify;",
                     column(5),
@@ -379,6 +440,18 @@ server <- function(input, output, session) {
       })
     }
   })
+  
+  output$tipo_pago <- renderUI({
+    if (input$modalidad_pagos == "A traves de una cuenta bancaria"){
+      tagList(
+        textInput("numero_cuenta", "Ingrese el número de la cuenta bancaria", value = "A"),
+        textInput("tipo_cuenta", "Ingrese el tipo de cuenta bancaria", value = "A"),
+        textInput("banco", "Ingrese el banco", value = "A")
+      )
+    }
+  })
+  
+ 
   
   observeEvent(input$datos_empleo_2, {
     # Validate fields
@@ -524,7 +597,7 @@ server <- function(input, output, session) {
           )
         })
       }
-      else (input$respuesta_dias == "El Trabajador") {
+      else if (input$respuesta_dias == "El Trabajador") {
         output$page_content <- renderUI({
           tagList(
             tags$br(),
@@ -650,83 +723,360 @@ server <- function(input, output, session) {
     seen_contract(TRUE)
   })
   
+  
   observeEvent(seen_contract(), {
     if (seen_contract()){
-      output$page_content <- renderUI({
-        tagList(
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$br(),
-          tags$h2(tags$b("Plantilla Educativa"), style = "text-align: center;"),
-          tags$br(),
-          tags$br(),
-          tags$p(tags$b("Salario acordado sin beneficios ni deducciones:", style = "font-size: 21px; text-align: justify;"), "$", input$salario_mensual, style = "font-size: 21px; text-align: justify;"),
-          conditional_paragraph <- if (as.numeric(input$salario_mensual) < 1300000 || input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)") {
-            subsidio_transporte <- 162000
-            tags$p(tags$b("Subsidio de transporte: "), as.character(subsidio_transporte), style = "font-size: 21px; text-align: justify;")
-          } else {
-            subsidio_transporte <- 0
-            tags$p(tags$b("Subsidio de transporte: "), as.character(subsidio_transporte), style = "font-size: 21px; text-align: justify;")
-          },
-          tags$b("Prestaciones sociales:", style = "font-size: 21px; text-align: justify;"),
-          div(style="height: 30px;"),
-          table <- tags$table(
-            style = "width: 100%; border-collapse: collapse;",
-            tags$thead(
-              tags$tr(
-                tags$th(style = "border: 1px solid black; padding: 8px;", "Rubro"),
-                tags$th(style = "border: 1px solid black; padding: 8px;", "Empleador"),
-                tags$th(style = "border: 1px solid black; padding: 8px;", "Trabajador")
-              )
-            ),
-            tags$tbody(
-              tags$tr(
-                tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Salud")),
-                tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.085),
-                tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.04)
-              ),
-              tags$tr(
-                tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Pensión")),
-                tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.12),
-                tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.04)
-              ),
-              tags$tr(
-                tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("ARL* (tipo 1)")),
-                tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.00052),
-                tags$td(style = "border: 1px solid black; padding: 8px;", "")
-              ),
-              tags$tr(
-                tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Caja de compensación (opcional)")),
-                tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.03),
-                tags$td(style = "border: 1px solid black; padding: 8px;", "")
-              )
-            ),
-            style = "font-size: 21px;"
-          ),
-          div(style="height: 30px;"),
-          tags$b(sprintf("Salario neto que recibirá el trabajador: %d", (input$salario_mensual - (as.numeric(input$salario_mensual) * 0.04) + subsidio_transporte)), style = "font-size: 21px; text-align: justify;"),
-          div(style="height: 30px;"),
-          tags$b("Beneficios:", style = "font-size: 21px;"),
-          tags$ul(
-            tags$li(
-              tags$p("Vacaciones pagadas por el empleador: 15 días al año (o proporcional)")
-            ),
-            tags$li(
-              tags$p(sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) / 2), sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) / 2))
-            ),
-            tags$li(
-              tags$p(sprintf("Cesantías: Consignadas al fondo del empleado. Un salario aL año (%d)", as.numeric(input$salario_mensual)), sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) * 0.12))
-            ),
-            tags$li("Incapacidades y licencias de maternidad cubiertas con la EPS"),
-            tags$li("Dotaciones dos veces al año (vestuario y calzado"),
-            tags$li("Acuerdos sobre tiempo de periodo de prueba."),
-            tags$li("Alimentación y vivienda como se haya acordado entre las partes."),
+      
+      output$error_message <- renderText({ "" })
+      
+      if (input$modalidad_pagos == "A traves de una cuenta bancaria"){
+        # Write info to the database
+        dbExecute(conn, "INSERT INTO users_data (
+            nombreTrabajador,
+            apellidosTrabajador,
+            tipoDocTrabajador,
+            numeroDocumentoTrabajador,
+            ciudadTrabajador,
+            direccionTrabajador,
+            correoTrabajador,
+            duracionContrato,
+            nombreEmpleador,
+            apellidosEmpleador,
+            tipoDocEmpleador,
+            numeroDocumentoEmpleador,
+            ciudadEmpleador,
+            direccionEmpleador,
+            correoEmpleador,
+            lugarPrestacion,
+            direccionTrabajo,
+            modalidadTrabajo,
+            funcionesTrabajador,
+            funcionesAdicionales,
+            tipoVinculacion,
+            encargadoSeguridad,
+            salario,
+            beneficios,
+            horarioLaboral,
+            diasTrabajo,
+            tiempoPago,
+            modalidadPago,
+            numeroCuenta,
+            tipoCuenta,
+            banco) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                  params = list(input$nombres_trabajador,
+                                input$apellidos_trabajador,
+                                input$tipo_documento_trabajador,
+                                input$numero_documento_trabajador,
+                                input$ciudad_trabajador,
+                                input$direccion_trabajador,
+                                input$correo_trabajador,
+                                input$duracion_contrato, #8
+                                input$nombres_empleador,
+                                input$apellidos_empleador,
+                                input$tipo_documento_empleador,
+                                input$numero_documento_empleador,
+                                input$ciudad_empleador,
+                                input$direccion_empleador,
+                                input$correo_empleador,
+                                input$lugar_prestacion_servicios,
+                                input$direccion_trabajo, #17
+                                input$modalidad_prestacion_servicios,
+                                paste(input$funciones_trabajador, collapse = ','),
+                                input$funciones_adicionales, #19
+                                input$tipo_vinculacion,
+                                input$respuesta_dias,
+                                input$salario_mensual,
+                                input$beneficios,
+                                input$horario_laboral,
+                                input$días_trabajo,
+                                input$tiempo_pagos,
+                                input$modalidad_pagos,
+                                input$numero_cuenta,
+                                input$tipo_cuenta,
+                                input$banco
+                  )
+        )
+      } else {
+        # Write info to the database
+        dbExecute(conn, "INSERT INTO users_data (
+            nombreTrabajador,
+            apellidosTrabajador,
+            tipoDocTrabajador,
+            numeroDocumentoTrabajador,
+            ciudadTrabajador,
+            direccionTrabajador,
+            correoTrabajador,
+            duracionContrato,
+            nombreEmpleador,
+            apellidosEmpleador,
+            tipoDocEmpleador,
+            numeroDocumentoEmpleador,
+            ciudadEmpleador,
+            direccionEmpleador,
+            correoEmpleador,
+            lugarPrestacion,
+            direccionTrabajo,
+            modalidadTrabajo,
+            funcionesTrabajador,
+            funcionesAdicionales,
+            tipoVinculacion,
+            encargadoSeguridad,
+            salario,
+            beneficios,
+            horarioLaboral,
+            diasTrabajo,
+            tiempoPago,
+            modalidadPago) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                  params = list(input$nombres_trabajador,
+                                input$apellidos_trabajador,
+                                input$tipo_documento_trabajador,
+                                input$numero_documento_trabajador,
+                                input$ciudad_trabajador,
+                                input$direccion_trabajador,
+                                input$correo_trabajador,
+                                input$duracion_contrato, #8
+                                input$nombres_empleador,
+                                input$apellidos_empleador,
+                                input$tipo_documento_empleador,
+                                input$numero_documento_empleador,
+                                input$ciudad_empleador,
+                                input$direccion_empleador,
+                                input$correo_empleador,
+                                input$lugar_prestacion_servicios,
+                                input$direccion_trabajo, #17
+                                input$modalidad_prestacion_servicios,
+                                paste(input$funciones_trabajador, collapse = ','),
+                                input$funciones_adicionales, #19
+                                input$tipo_vinculacion,
+                                input$respuesta_dias,
+                                input$salario_mensual,
+                                input$beneficios,
+                                input$horario_laboral,
+                                input$días_trabajo,
+                                input$tiempo_pagos,
+                                input$modalidad_pagos
+                  )
+        )
+      }
+      
+      
+      if (input$modalidad_prestacion_servicios == "Interna (vivirá en la residencia en que preste sus servicios)"){
+        output$page_content <- renderUI({
+          tagList(
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$h2(tags$b("Plantilla Educativa"), style = "text-align: center;"),
+            tags$br(),
+            tags$br(),
+            tags$p(tags$b("Salario acordado sin beneficios ni deducciones:", style = "font-size: 21px; text-align: justify;"), "$", input$salario_mensual, style = "font-size: 21px; text-align: justify;"),
+            conditional_paragraph <- if (as.numeric(input$salario_mensual) < 1300000 || input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)") {
+              subsidio_transporte <- 162000
+              tags$p(tags$b("Subsidio de transporte: "), as.character(subsidio_transporte), style = "font-size: 21px; text-align: justify;")
+            } else {
+              subsidio_transporte <- 0
+              tags$p(tags$b("Subsidio de transporte: "), as.character(subsidio_transporte), style = "font-size: 21px; text-align: justify;")
+            },
+            tags$b("Prestaciones sociales:", style = "font-size: 21px; text-align: justify;"),
             div(style="height: 30px;"),
-            style = "font-size: 21px;"
+            table <- tags$table(
+              style = "width: 100%; border-collapse: collapse;",
+              tags$thead(
+                tags$tr(
+                  tags$th(style = "border: 1px solid black; padding: 8px;", "Rubro"),
+                  tags$th(style = "border: 1px solid black; padding: 8px;", "Empleador"),
+                  tags$th(style = "border: 1px solid black; padding: 8px;", "Trabajador")
+                )
+              ),
+              tags$tbody(
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Salud")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.085),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.04)
+                ),
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Pensión")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.12),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.04)
+                ),
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("ARL* (tipo 1)")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.00052),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", "")
+                ),
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Caja de compensación (opcional)")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.03),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", "")
+                )
+              ),
+              style = "font-size: 21px;"
+            ),
+            div(style="height: 30px;"),
+            tags$b(sprintf("Salario neto que recibirá el trabajador: %d", (input$salario_mensual - (as.numeric(input$salario_mensual) * 0.04) + subsidio_transporte)), style = "font-size: 21px; text-align: justify;"),
+            div(style="height: 30px;"),
+            tags$b("Beneficios:", style = "font-size: 21px;"),
+            tags$ul(
+              tags$li(
+                tags$p("Vacaciones pagadas por el empleador: 15 días al año (o proporcional)")
+              ),
+              tags$li(
+                tags$p(sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) / 2), sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) / 2))
+              ),
+              tags$li(
+                tags$p(sprintf("Cesantías: Consignadas al fondo del empleado. Un salario aL año (%d)", as.numeric(input$salario_mensual)), sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) * 0.12))
+              ),
+              tags$li("Incapacidades y licencias de maternidad cubiertas con la EPS"),
+              tags$li("Dotaciones dos veces al año (vestuario y calzado"),
+              tags$li("Acuerdos sobre tiempo de periodo de prueba."),
+              tags$li("Alimentación y vivienda como se haya acordado entre las partes."),
+              div(style="height: 30px;"),
+              style = "font-size: 21px;"
+            )
           )
+        })
+        
+      } else if (input$tipo_vinculacion == "Fija (es decir el trabajador de servicio domestica trabaja en un solo hogar varios días a la semana" || (input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)" && input$respuesta_dias == "El Empleador")){
+        output$page_content <- renderUI({
+          tagList(
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$h2(tags$b("Plantilla Educativa"), style = "text-align: center;"),
+            tags$br(),
+            tags$br(),
+            tags$p(tags$b("Salario acordado sin beneficios ni deducciones:", style = "font-size: 21px; text-align: justify;"), "$", input$salario_mensual, style = "font-size: 21px; text-align: justify;"),
+            conditional_paragraph <- if (as.numeric(input$salario_mensual) < 1300000 || input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)") {
+              subsidio_transporte <- 162000
+              tags$p(tags$b("Subsidio de transporte: "), as.character(subsidio_transporte), style = "font-size: 21px; text-align: justify;")
+            } else {
+              subsidio_transporte <- 0
+              tags$p(tags$b("Subsidio de transporte: "), as.character(subsidio_transporte), style = "font-size: 21px; text-align: justify;")
+            },
+            tags$b("Prestaciones sociales:", style = "font-size: 21px; text-align: justify;"),
+            div(style="height: 30px;"),
+            table <- tags$table(
+              style = "width: 100%; border-collapse: collapse;",
+              tags$thead(
+                tags$tr(
+                  tags$th(style = "border: 1px solid black; padding: 8px;", "Rubro"),
+                  tags$th(style = "border: 1px solid black; padding: 8px;", "Empleador"),
+                  tags$th(style = "border: 1px solid black; padding: 8px;", "Trabajador")
+                )
+              ),
+              tags$tbody(
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Salud")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.085),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.04)
+                ),
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Pensión")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.12),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.04)
+                ),
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("ARL* (tipo 1)")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.00052),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", "")
+                ),
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Caja de compensación (opcional)")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.03),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", "")
+                )
+              ),
+              style = "font-size: 21px;"
+            ),
+            div(style="height: 30px;"),
+            tags$b(sprintf("Salario neto que recibirá el trabajador: %d", (input$salario_mensual - (as.numeric(input$salario_mensual) * 0.04) + subsidio_transporte)), style = "font-size: 21px; text-align: justify;"),
+            div(style="height: 30px;"),
+            tags$b("Beneficios:", style = "font-size: 21px;"),
+            tags$ul(
+              tags$li(
+                tags$p("Vacaciones pagadas por el empleador: 15 días al año (o proporcional)")
+              ),
+              tags$li(
+                tags$p(sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) / 2), sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) / 2))
+              ),
+              tags$li(
+                tags$p(sprintf("Cesantías: Consignadas al fondo del empleado. Un salario aL año (%d)", as.numeric(input$salario_mensual)), sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) * 0.12))
+              ),
+              tags$li("Incapacidades y licencias de maternidad cubiertas con la EPS"),
+              tags$li("Dotaciones dos veces al año (vestuario y calzado"),
+              tags$li("Acuerdos sobre tiempo de periodo de prueba."),
+              div(style="height: 30px;"),
+              style = "font-size: 21px;"
+            )
           )
-      })
+        })
+        
+      } else if (input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)" && input$respuesta_dias == "El Trabajador") {
+        output$page_content <- renderUI({
+          tagList(
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$br(),
+            tags$h2(tags$b("Plantilla Educativa"), style = "text-align: center;"),
+            tags$br(),
+            tags$br(),
+            tags$p(tags$b("Salario acordado sin beneficios ni deducciones:", style = "font-size: 21px; text-align: justify;"), "$", input$salario_mensual, style = "font-size: 21px; text-align: justify;"),
+            
+            tags$b("Prestaciones sociales:", style = "font-size: 21px; text-align: justify;"),
+            div(style="height: 30px;"),
+            table <- tags$table(
+              style = "width: 100%; border-collapse: collapse;",
+              tags$thead(
+                tags$tr(
+                  tags$th(style = "border: 1px solid black; padding: 8px;", "Rubro"),
+                  tags$th(style = "border: 1px solid black; padding: 8px;", "Empleador"),
+                  tags$th(style = "border: 1px solid black; padding: 8px;", "Trabajador")
+                )
+              ),
+              tags$tbody(
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Salud")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", ""),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.125)
+                ),
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Pensión")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", ""),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.16)
+                ),
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("ARL* (tipo 1)")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", ""),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.00052)
+                ),
+                tags$tr(
+                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Caja de compensación (opcional)")),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", ""),
+                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.03)
+                )
+              ),
+              style = "font-size: 21px;"
+            ),
+            div(style="height: 30px;"),
+            tags$br(),
+            tags$p("El trabajador se compromete a realizar el pago de la planilla correspondiente según sus salarios mensuales ", style = "font-size: 21px;"),
+            tags$br(),
+            tags$b(sprintf("Salario neto que recibirá el trabajador: %d", (input$salario_mensual - (as.numeric(input$salario_mensual) * 0.04))), style = "font-size: 21px; text-align: justify;"),
+            div(style="height: 30px;"),
+            tags$b("Beneficios:", style = "font-size: 21px;"),
+            tags$ul(
+              tags$li("Incapacidades y licencias de maternidad cubiertas con la EPS"),
+              tags$li("Acuerdos sobre tiempo de periodo de prueba."),
+              div(style="height: 30px;"),
+              style = "font-size: 21px;"
+            )
+          )
+        })
+      }
+      
     }
     })
 
@@ -744,7 +1094,7 @@ server <- function(input, output, session) {
     output$page_content <- renderUI({
       tags$p("Ready to take the Shiny tutorial? If so")
       # HTML(sprintf('<h1 style="text-align: center;">CONTRATO DE TRABAJO ENTRE %s %s y %s %s</h1>
-      #              <p style="font-size: 18px;">Entre las partes, por un lado %s %s, quien en adelante y para los efectos del presente contrato se denomina EL EMPLEADOR, y por el otro, (nombre completo del trabajador), quien en adelante y para los efectos del presente contrato se denomina EL TRABAJADOR, identificados como aparece al pie de las firmas, hemos acordado suscribir este contrato de trabajo, el cual se regirá por las siguientes cláusulas:</p>
+      #              <p style="font-size: 18px;">Entre las partespor un lado %s %s, quien en adelante y para los efectos del presente contrato se denomina EL EMPLEADOR, y por el otro, (nombre completo del trabajador), quien en adelante y para los efectos del presente contrato se denomina EL TRABAJADOR, identificados como aparece al pie de las firmas, hemos acordado suscribir este contrato de trabajo, el cual se regirá por las siguientes cláusulas:</p>
       #              '
       #              
       #              ,
