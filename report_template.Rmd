@@ -1,15 +1,13 @@
 ---
-title: "User Information Report"
+title: ""
 output: html_document
 params:
-  name: "Default Name"
-  age: 25
-  gender: "Other"
+  nombres_trabajador: ""
+  apellidos_trabajador: ""
+  nombres_empleador: ""
+  apellidos_empleador: ""
 ---
 
-## User Information
+### CONTRATO DE TRABAJO ENTRE `r toupper(params$nombres_trabajador)` `r toupper(params$apellidos_trabajador)` y `r toupper(params$nombres_empleador)` `r toupper(params$apellidos_empleador)` 
 
-- **Name:** `r params$name`
-- **Age:** `r params$age`
-- **Gender:** `r params$gender`
 
