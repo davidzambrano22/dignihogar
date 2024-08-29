@@ -3,6 +3,8 @@ library(DBI)
 library(rmarkdown)
 library(pagedown)
 library(shinydashboard)
+library(htmlwidgets)
+library(slickR)
 
 source("UI/home.R")
 source("UI/data_policy.R")
@@ -12,6 +14,9 @@ source("UI/info_funciones.R")
 source("UI/info_salario.R")
 source("UI/contrato_dependiente.R")
 source("UI/contrato_independiente.R")
+source("UI/plantilla_diasIndependiente.R")
+source("UI/plantilla_fija.R")
+source("UI/platilla_interna.R")
 
 server <- function(input, output, session) {
   conn <- dbConnect(RSQLite::SQLite(), "user_data.sqlite")
@@ -66,11 +71,30 @@ server <- function(input, output, session) {
   submit_infoEmpleo_2 <- reactiveVal(FALSE)
   goBackContractInfo <- reactiveVal(FALSE)
   seen_contract <- reactiveVal(FALSE)
+  goBackPlantillatInfo <- reactiveVal(FALSE)
   
   # Initialize the page_content with a welcome message
+
+  
+  output$image_slider <- renderSlickR({
+    # List of image paths in the www directory
+    images <- list.files("www/slider_2/", pattern = "\\.jpg$", full.names = TRUE)
+    slickR(images) +
+      settings(
+        autoplay = TRUE,      # Enable autoplay
+        autoplaySpeed = 2000, # Time between slides in milliseconds
+        dots = TRUE,          # Show navigation dots
+        infinite = TRUE,      # Infinite loop
+        speed = 500,          # Transition speed in milliseconds
+        slidesToShow = 1,     # Number of slides to show at once
+        slidesToScroll = 1    # Number of slides to scroll at once
+      )
+  })
+  
   observeEvent(home(), {
     if (home()){
       goDatapolycyToHome(FALSE)
+      # Poner los demás en falso también, puede ser eso ###############################################################################################################
       homeUI(output)
       }
     }
@@ -124,27 +148,31 @@ server <- function(input, output, session) {
   observeEvent(input$datos_trabajador, {
     # Validate fields
     if (input$nombres_trabajador == "") {
-      output$error_message <- renderText({ "*El campo Nombres  no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Nombres  no puede estar vacío" })
       return(NULL)
     }
     else if (input$apellidos_trabajador == ""){
-      output$error_message <- renderText({ "*El campo Apellidos  no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Apellidos  no puede estar vacío" })
       return(NULL)
     }
     else if (input$tipo_documento_trabajador == ""){
-      output$error_message <- renderText({ "*El campo Número de documento no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Número de documento no puede estar vacío" })
       return(NULL)
     }
     else if (input$ciudad_trabajador == ""){
-      output$error_message <- renderText({ "*El campo Ciudad no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Ciudad no puede estar vacío" })
       return(NULL)
     }
     else if (input$direccion_trabajador == ""){
-      output$error_message <- renderText({ "*El campo Dirección no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Dirección no puede estar vacío" })
       return(NULL)
     }
-    else if (input$correo_trabajador == ""){
-      output$error_message <- renderText({ "*El campo Correo electrónico no puede estar vacío" })
+    else if (input$correo_trabajador == "" ){
+      output$error_message <- renderText({ "**El campo Correo electrónico no puede estar vacío" })
+      return(NULL)
+    }
+    else if (!grepl("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", input$correo_trabajador)){
+      output$error_message <- renderText({ "*Ingrese un correo electrónico válido" })
       return(NULL)
     }
     else {
@@ -165,27 +193,31 @@ server <- function(input, output, session) {
   observeEvent(input$datos_empleador, {
     # Validate fields
     if (input$nombres_empleador == "") {
-      output$error_message <- renderText({ "*El campo Nombres  no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Nombres no puede estar vacío*" })
       return(NULL)
     }
     else if (input$apellidos_empleador == ""){
-      output$error_message <- renderText({ "*El campo Apellidos  no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Apellidos  no puede estar vacío*" })
       return(NULL)
     }
     else if (input$numero_documento_empleador == ""){
-      output$error_message <- renderText({ "*El campo Número de documento no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Número de documento no puede estar vacío*" })
       return(NULL)
     }
     else if (input$ciudad_empleador == ""){
-      output$error_message <- renderText({ "*El campo Ciudad no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Ciudad no puede estar vacío*" })
       return(NULL)
     }
     else if (input$direccion_empleador == ""){
-      output$error_message <- renderText({ "*El campo Dirección no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Dirección no puede estar vacío*" })
       return(NULL)
     }
     else if (input$correo_empleador == ""){
-      output$error_message <- renderText({ "*El campo Correo electrónico no puede estar vacío" })
+      output$error_message <- renderText({ "**El campo Correo electrónico no puede estar vacío*" })
+      return(NULL)
+    }
+    else if (!grepl("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", input$correo_empleador)){
+      output$error_message <- renderText({ "**Ingrese un correo electrónico válido*" })
       return(NULL)
     }
     else {
@@ -215,15 +247,15 @@ server <- function(input, output, session) {
   })
   
   output$out_respuestaDias <- renderUI({
-    if (input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)"){
+    if (input$tipo_vinculacion == "Por días (es decir, la persona trabajadora doméstica que labora en diferentes hogares a la semana y recibe pagos por el día laborado)"){
       tagList(
-      selectInput("respuesta_dias", "**Si su respuesta es por días** ¿Quién será el encargado de realizar los trámites de seguridad social?",
+      selectInput("respuesta_dias", "**Dado que su respuesta es por días** ¿Quién será el encargado de realizar los trámites y pagos de seguridad social?",
                   choices = c(
-                    "El Trabajador",
-                    "El Empleador"
+                    "La persona trabajadora doméstica",
+                    "La persona empleadora"
                   ),
                   width = "600px"),
-      tags$p("**Tenga en cuenta que en cualquiera de los casos ambos deben aportar para el pago de seguridad y parafiscales del empleado.", style = "font-size: 18px;"),
+      tags$p("**Tenga en cuenta que la selección del tipo de vinculación determinará quién es responsable de los trámites relacionados con la seguridad social y parafiscales. Es fundamental que ambas partes comprendan sus obligaciones para garantizar el cumplimiento adecuado de todas las normativas laborales.", style = "font-size: 18px;"),
       )
     }
   })
@@ -268,16 +300,16 @@ server <- function(input, output, session) {
   ######################## Check Salario Answers #######################
   observeEvent(input$datos_empleo_2, {
     # Validate fields
-    if (input$beneficios == "") {
-      output$error_message <- renderText({ "*El campo Beneficios  no puede estar vacío" })
-      return(NULL)
-    }
-    else if (input$horario_laboral == ""){
-      output$error_message <- renderText({ "*El campo Horario laboral  no puede estar vacío" })
+    # if (input$beneficios == "") {
+    #   output$error_message <- renderText({ "**El campo Beneficios  no puede estar vacío" })
+    #   return(NULL)
+    # }
+    if (input$horario_laboral == ""){
+      output$error_message <- renderText({ "**El campo Horario laboral  no puede estar vacío" })
       return(NULL)
     }
     else if (input$días_trabajo < 1 || input$días_trabajo > 31) {
-      output$error_message <- renderText({ "Por favor ingrese un valor entre 1 y 31 para el campo Días de trabajo" })
+      output$error_message <- renderText({ "**Por favor ingrese un valor entre 1 y 31 para el campo Días de trabajo" })
       return(NULL)
     }
     else {
@@ -302,13 +334,27 @@ server <- function(input, output, session) {
     if (submit_infoEmpleo_2()){
       output$error_message <- renderText({ "" })
       
+      print(input$funciones_trabajador)
       
-      if (input$modalidad_prestacion_servicios == "Interna (vivirá en la residencia en que preste sus servicios)" || input$tipo_vinculacion == "Fija (es decir el trabajador de servicio domestica trabaja en un solo hogar varios días a la semana" || input$respuesta_dias == "El Empleador") {
+      if (input$modalidad_prestacion_servicios == "Interna (vivirá en la residencia en que preste sus servicios)" && input$tipo_vinculacion == "Fija (es decir, la persona trabajadora doméstica que labora en un solo hogar varios días a la semana") {
         contratoDependienteUI(input, output)
       }
-      else if (input$respuesta_dias == "El Trabajador") {
+      
+      else if (input$modalidad_prestacion_servicios == "Externa (no vivirá en la residencia de prestación de los servicios)" && input$tipo_vinculacion == "Fija (es decir, la persona trabajadora doméstica que labora en un solo hogar varios días a la semana") {
+        contratoDependienteUI(input, output)
+      }
+      
+      else if (input$respuesta_dias == "La persona empleadora") {
+        contratoDependienteUI(input, output)
+      }
+      
+      else if (input$respuesta_dias == "La persona trabajadora doméstica") {
         contratoIndependienteUI(input, output)
       }
+      
+      # else if (input$modalidad_prestacion_servicios == "Interna (vivirá en la residencia en que preste sus servicios)" && input$respuesta_dias == "La persona trabajadora doméstica") {
+      #   contratoIndependienteUI(input, output)
+      # }
     }
   })
   
@@ -316,48 +362,107 @@ server <- function(input, output, session) {
   # Create cotract PDF to dowload
   output$download_contrato_pdf <- downloadHandler(
     filename = function() {
-      paste("user_info", Sys.Date(), ".pdf", sep = "")
+      paste("modelo_contrato", Sys.Date(), ".pdf", sep = "")
     },
     content = function(file) {
-      if (input$modalidad_prestacion_servicios == "Interna (vivirá en la residencia en que preste sus servicios)" || input$tipo_vinculacion == "Fija (es decir el trabajador de servicio domestica trabaja en un solo hogar varios días a la semana" || input$respuesta_dias == "El Empleador"){
+      if (input$modalidad_prestacion_servicios == "Interna (vivirá en la residencia en que preste sus servicios)" || input$tipo_vinculacion == "Fija (es decir, la persona trabajadora doméstica que labora en un solo hogar varios días a la semana)" || input$respuesta_dias == "La persona empleadora"){
+        
+        date <- strsplit(as.character(Sys.Date()), "-")
+        months <- list("01" = "enero",
+                       "02" = "febrero",
+                       "03" = "marzo",
+                       "04" = "abril",
+                       "05" = "mayo",
+                       "06" = "junio",
+                       "07" = "julio",
+                       "08" = "agosto",
+                       "09" = "septiembre",
+                       "10" = "octubre",
+                       "11" = "noviembre",
+                       "12" = "diciembre"
+        )
+        
         # Create a temporary HTML file
-        tempReport <- file.path(tempdir(), "report.html")
+        tempReport <- file.path(tempdir(), "contrato_dependiente.Rmd")
+        file.copy("contrato_dependiente.Rmd", tempReport, overwrite = T)
         tempParams <- list(nombres_trabajador = toupper(input$nombres_trabajador),
                            apellidos_trabajador = toupper(input$apellidos_trabajador),
                            nombres_empleador  = toupper(input$nombres_empleador),
-                           apellidos_empleador = toupper(input$apellidos_empleador)
+                           apellidos_empleador = toupper(input$apellidos_empleador),
+                           direccion_trabajo = toupper(input$direccion_trabajo),
+                           salario_mensual = input$salario_mensual,
+                           tiempo_pagos = input$tiempo_pagos,
+                           modalidad_pagos = tolower(input$modalidad_pagos),
+                           dia = date[[1]][3],
+                           mes = months[[date[[1]][2]]],
+                           ano = date[[1]][1],
+                           dia_inicio = strsplit(as.character(input$fecha_inicio), "-")[[1]][3],
+                           mes_inicio = months[[strsplit(as.character(input$fecha_inicio), "-")[[1]][2]]],
+                           ano_inicio = strsplit(as.character(input$fecha_inicio), "-")[[1]][1]
         )
         
         # Render the RMarkdown document to HTML
         rmarkdown::render(
-          "report_template.Rmd",
-          output_file = tempReport,
+          tempReport,
+          output_file = file,
           params = tempParams,
           envir = new.env(parent = globalenv())
         )
+        # Set the maximum attempts to find headless Chrome
+        # options(pagedown.remote.maxattempts = 200)
+        # options(pagedown.remote.sleeptime=2)
+        # # Convert the HTML to PDF
+        # pagedown::chrome_print(tempReport, output = file, timeout = 30,  verbose = TRUE)
+
         
-        # Convert the HTML to PDF
-        pagedown::chrome_print(tempReport, output = file)
+      } else if (input$respuesta_dias == "La persona trabajadora doméstica") {
         
-      } else if (input$respuesta_dias == "El Trabajador") {
+        date <- strsplit(as.character(Sys.Date()), "-")
+        months <- list("01" = "enero",
+                       "02" = "febrero",
+                       "03" = "marzo",
+                       "04" = "abril",
+                       "05" = "mayo",
+                       "06" = "junio",
+                       "07" = "julio",
+                       "08" = "agosto",
+                       "09" = "septiembre",
+                       "10" = "octubre",
+                       "11" = "noviembre",
+                       "12" = "diciembre"
+        )
+        
         # Create a temporary HTML file
-        tempReport <- file.path(tempdir(), "report.html")
+        tempReport <- file.path(tempdir(), "contrato_independiente.Rmd")
+        file.copy("contrato_independiente.Rmd", tempReport, overwrite = T)
         tempParams <- list(nombres_trabajador = toupper(input$nombres_trabajador),
                            apellidos_trabajador = toupper(input$apellidos_trabajador),
                            nombres_empleador  = toupper(input$nombres_empleador),
-                           apellidos_empleador = toupper(input$apellidos_empleador)
+                           apellidos_empleador = toupper(input$apellidos_empleador),
+                           direccion_trabajo = toupper(input$direccion_trabajo),
+                           salario_mensual = input$salario_mensual,
+                           tiempo_pagos = input$tiempo_pagos,
+                           modalidad_pagos = tolower(input$modalidad_pagos),
+                           dia = date[[1]][3],
+                           mes = months[[date[[1]][2]]],
+                           ano = date[[1]][1],
+                           dia_inicio = strsplit(as.character(input$fecha_inicio), "-")[[1]][3],
+                           mes_inicio = months[[strsplit(as.character(input$fecha_inicio), "-")[[1]][2]]],
+                           ano_inicio = strsplit(as.character(input$fecha_inicio), "-")[[1]][1]
         )
         
         # Render the RMarkdown document to HTML
         rmarkdown::render(
-          "report_template.Rmd",
-          output_file = tempReport,
+          tempReport,
+          output_file = file,
           params = tempParams,
           envir = new.env(parent = globalenv())
         )
-        
-        # Convert the HTML to PDF
-        pagedown::chrome_print(tempReport, output = file)
+        # # Set the maximum attempts to find headless Chrome
+        # options(pagedown.remote.maxattempts = 200)
+        # options(pagedown.remote.sleeptime=2)
+        # # Convert the HTML to PDF
+        # pagedown::chrome_print(tempReport, output = file, timeout = 30,  verbose = TRUE)
       }
     }
   )
@@ -382,7 +487,6 @@ server <- function(input, output, session) {
 
   observeEvent(seen_contract(), {
     if (seen_contract()){
-      
       output$error_message <- renderText({ "" })
       
       if (input$modalidad_pagos == "A traves de una cuenta bancaria"){
@@ -517,276 +621,128 @@ server <- function(input, output, session) {
       
       
       if (input$modalidad_prestacion_servicios == "Interna (vivirá en la residencia en que preste sus servicios)"){
-        output$page_content <- renderUI({
-          tagList(
-            fluidRow(
-              column(4,
-                     tags$img(src = "logo_urosario.png", height = 150, width = 500, style = "text-align: center;")
-              ),
-              column(4, offset = 4,
-                     tags$img(src = "LogoCODES.png", height = 150, width = 500, style = "text-align: center;")
-              ),
-            ),
-            div(style = "height: 60px"),
-            tags$br(),
-            tags$br(),
-            tags$br(),
-            tags$br(),
-            tags$h2(tags$b("Plantilla Educativa"), style = "text-align: center;"),
-            tags$br(),
-            tags$br(),
-            tags$p(tags$b("Salario acordado sin beneficios ni deducciones:", style = "font-size: 21px; text-align: justify;"), "$", input$salario_mensual, style = "font-size: 21px; text-align: justify;"),
-            conditional_paragraph <- if (as.numeric(input$salario_mensual) < 1300000 || input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)") {
-              subsidio_transporte <- 162000
-              tags$p(tags$b("Subsidio de transporte: "), as.character(subsidio_transporte), style = "font-size: 21px; text-align: justify;")
-            } else {
-              subsidio_transporte <- 0
-              tags$p(tags$b("Subsidio de transporte: "), as.character(subsidio_transporte), style = "font-size: 21px; text-align: justify;")
-            },
-            tags$b("Prestaciones sociales:", style = "font-size: 21px; text-align: justify;"),
-            div(style="height: 30px;"),
-            table <- tags$table(
-              style = "width: 100%; border-collapse: collapse;",
-              tags$thead(
-                tags$tr(
-                  tags$th(style = "border: 1px solid black; padding: 8px;", "Rubro"),
-                  tags$th(style = "border: 1px solid black; padding: 8px;", "Empleador"),
-                  tags$th(style = "border: 1px solid black; padding: 8px;", "Trabajador")
-                )
-              ),
-              tags$tbody(
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Salud")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.085),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.04)
-                ),
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Pensión")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.12),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.04)
-                ),
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("ARL* (tipo 1)")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.00052),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", "")
-                ),
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Caja de compensación (opcional)")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.03),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", "")
-                )
-              ),
-              style = "font-size: 21px;"
-            ),
-            div(style="height: 30px;"),
-            tags$b(sprintf("Salario neto que recibirá el trabajador: %d", (input$salario_mensual - (as.numeric(input$salario_mensual) * 0.04) + subsidio_transporte)), style = "font-size: 21px; text-align: justify;"),
-            div(style="height: 30px;"),
-            tags$b("Beneficios:", style = "font-size: 21px;"),
-            tags$ul(
-              tags$li(
-                tags$p("Vacaciones pagadas por el empleador: 15 días al año (o proporcional)")
-              ),
-              tags$li(
-                tags$p(sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) / 2), sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) / 2))
-              ),
-              tags$li(
-                tags$p(sprintf("Cesantías: Consignadas al fondo del empleado. Un salario aL año (%d)", as.numeric(input$salario_mensual)), sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) * 0.12))
-              ),
-              tags$li("Incapacidades y licencias de maternidad cubiertas con la EPS"),
-              tags$li("Dotaciones dos veces al año (vestuario y calzado"),
-              tags$li("Acuerdos sobre tiempo de periodo de prueba."),
-              tags$li("Alimentación y vivienda como se haya acordado entre las partes."),
-              div(style="height: 30px;"),
-              style = "font-size: 21px;"
-            ),
-            div(style = "height: 60px;"),
-            div(style = "text-align: justify;",
-                column(5),
-                column(6,
-                       downloadButton("download_plantilla_pdf", "Descargue la plantilla", style = "font-size: 20px; text-align: center;")
-                )
-            ),
-            div(style="height: 50px;"),
-          )
-        })
+        plantillaInternaUI(input, output) # Se descarga
         
-      } else if (input$tipo_vinculacion == "Fija (es decir el trabajador de servicio domestica trabaja en un solo hogar varios días a la semana" || (input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)" && input$respuesta_dias == "El Empleador")){
-        output$page_content <- renderUI({
-          tagList(
-            fluidRow(
-              column(4,
-                     tags$img(src = "logo_urosario.png", height = 150, width = 500, style = "text-align: center;")
-              ),
-              column(4, offset = 4,
-                     tags$img(src = "LogoCODES.png", height = 150, width = 500, style = "text-align: center;")
-              ),
-            ),
-            div(style = "height: 60px"),
-            tags$br(),
-            tags$br(),
-            tags$br(),
-            tags$br(),
-            tags$h2(tags$b("Plantilla Educativa"), style = "text-align: center;"),
-            tags$br(),
-            tags$br(),
-            tags$p(tags$b("Salario acordado sin beneficios ni deducciones:", style = "font-size: 21px; text-align: justify;"), "$", input$salario_mensual, style = "font-size: 21px; text-align: justify;"),
-            conditional_paragraph <- if (as.numeric(input$salario_mensual) < 1300000 || input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)") {
-              subsidio_transporte <- 162000
-              tags$p(tags$b("Subsidio de transporte: "), as.character(subsidio_transporte), style = "font-size: 21px; text-align: justify;")
-            } else {
-              subsidio_transporte <- 0
-              tags$p(tags$b("Subsidio de transporte: "), as.character(subsidio_transporte), style = "font-size: 21px; text-align: justify;")
-            },
-            tags$b("Prestaciones sociales:", style = "font-size: 21px; text-align: justify;"),
-            div(style="height: 30px;"),
-            table <- tags$table(
-              style = "width: 100%; border-collapse: collapse;",
-              tags$thead(
-                tags$tr(
-                  tags$th(style = "border: 1px solid black; padding: 8px;", "Rubro"),
-                  tags$th(style = "border: 1px solid black; padding: 8px;", "Empleador"),
-                  tags$th(style = "border: 1px solid black; padding: 8px;", "Trabajador")
-                )
-              ),
-              tags$tbody(
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Salud")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.085),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.04)
-                ),
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Pensión")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.12),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.04)
-                ),
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("ARL* (tipo 1)")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.00052),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", "")
-                ),
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Caja de compensación (opcional)")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.03),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", "")
-                )
-              ),
-              style = "font-size: 21px;"
-            ),
-            div(style="height: 30px;"),
-            tags$b(sprintf("Salario neto que recibirá el trabajador: %d", (input$salario_mensual - (as.numeric(input$salario_mensual) * 0.04) + subsidio_transporte)), style = "font-size: 21px; text-align: justify;"),
-            div(style="height: 30px;"),
-            tags$b("Beneficios:", style = "font-size: 21px;"),
-            tags$ul(
-              tags$li(
-                tags$p("Vacaciones pagadas por el empleador: 15 días al año (o proporcional)")
-              ),
-              tags$li(
-                tags$p(sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) / 2), sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) / 2))
-              ),
-              tags$li(
-                tags$p(sprintf("Cesantías: Consignadas al fondo del empleado. Un salario aL año (%d)", as.numeric(input$salario_mensual)), sprintf("Prima: Un salario al año (o proporcional) Medio salario el 30 junio (%d)", as.numeric(input$salario_mensual) * 0.12))
-              ),
-              tags$li("Incapacidades y licencias de maternidad cubiertas con la EPS"),
-              tags$li("Dotaciones dos veces al año (vestuario y calzado"),
-              tags$li("Acuerdos sobre tiempo de periodo de prueba."),
-              div(style="height: 30px;"),
-              style = "font-size: 21px;"
-            ),
-            div(style = "text-align: justify;",
-                 column(5),
-                 column(6,
-                        downloadButton("download_plantilla_pdf", "Descargue la plantilla", style = "font-size: 20px; text-align: center;")
-                 )
-            ),
-            div(style="height: 50px;"),
-          )
-        })
+      } else if (input$tipo_vinculacion == "Fija (es decir, la persona trabajadora doméstica que labora en un solo hogar varios días a la semana" || (input$tipo_vinculacion == "Por días (es decir, la persona trabajadora doméstica que labora en diferentes hogares a la semana y recibe pagos por el día laborado)" && input$respuesta_dias == "La persona empleadora")){
+        plantillaFijaUI(input, output) # No se descarga
         
-      } else if (input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)" && input$respuesta_dias == "El Trabajador") {
-        output$page_content <- renderUI({
-          tagList(
-            fluidRow(
-              column(4,
-                     tags$img(src = "logo_urosario.png", height = 150, width = 500, style = "text-align: center;")
-              ),
-              column(4, offset = 4,
-                     tags$img(src = "LogoCODES.png", height = 150, width = 500, style = "text-align: center;")
-              ),
-            ),
-            div(style = "height: 60px"),
-            tags$br(),
-            tags$br(),
-            tags$br(),
-            tags$br(),
-            tags$h2(tags$b("Plantilla Educativa"), style = "text-align: center;"),
-            tags$br(),
-            tags$br(),
-            tags$p(tags$b("Salario acordado sin beneficios ni deducciones:", style = "font-size: 21px; text-align: justify;"), "$", input$salario_mensual, style = "font-size: 21px; text-align: justify;"),
-            
-            tags$b("Prestaciones sociales:", style = "font-size: 21px; text-align: justify;"),
-            div(style="height: 30px;"),
-            table <- tags$table(
-              style = "width: 100%; border-collapse: collapse;",
-              tags$thead(
-                tags$tr(
-                  tags$th(style = "border: 1px solid black; padding: 8px;", "Rubro"),
-                  tags$th(style = "border: 1px solid black; padding: 8px;", "Empleador"),
-                  tags$th(style = "border: 1px solid black; padding: 8px;", "Trabajador")
-                )
-              ),
-              tags$tbody(
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Salud")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", ""),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.125)
-                ),
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Pensión")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", ""),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.16)
-                ),
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("ARL* (tipo 1)")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", ""),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.00052)
-                ),
-                tags$tr(
-                  tags$td(style = "border: 1px solid black; padding: 8px;", tags$b("Caja de compensación (opcional)")),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", ""),
-                  tags$td(style = "border: 1px solid black; padding: 8px;", as.numeric(input$salario_mensual) * 0.03)
-                )
-              ),
-              style = "font-size: 21px;"
-            ),
-            div(style="height: 30px;"),
-            tags$br(),
-            tags$p("El trabajador se compromete a realizar el pago de la planilla correspondiente según sus salarios mensuales ", style = "font-size: 21px;"),
-            tags$br(),
-            tags$b(sprintf("Salario neto que recibirá el trabajador: %d", (input$salario_mensual - (as.numeric(input$salario_mensual) * 0.04))), style = "font-size: 21px; text-align: justify;"),
-            div(style="height: 30px;"),
-            tags$b("Beneficios:", style = "font-size: 21px;"),
-            tags$ul(
-              tags$li("Incapacidades y licencias de maternidad cubiertas con la EPS"),
-              tags$li("Acuerdos sobre tiempo de periodo de prueba."),
-              div(style="height: 30px;"),
-              style = "font-size: 21px;"
-            ),
-            div(style = "text-align: justify;",
-                column(5),
-                column(6,
-                       downloadButton("download_plantilla_pdf", "Descargue la plantilla", style = "font-size: 20px; text-align: center;")
-                )
-            ),
-            div(style="height: 50px;"),
-          )
-        })
+      } else if (input$tipo_vinculacion == "Por días (es decir, la persona trabajadora doméstica que labora en diferentes hogares a la semana y recibe pagos por el día laborado)" && input$respuesta_dias == "La persona trabajadora doméstica") {
+        plantillaDiasUI(input, output)  # No se descarga
       }
       
     }
     })
+  
+  
+  # Create plantilla PDF to dowload
+  output$download_plantilla_pdf <- downloadHandler(
+
+    filename = function() {
+      paste("plantilla_educativa", Sys.Date(), ".pdf", sep = "")
+    },
+    content = function(file) {
+      
+      # Define subsidio transporte value
+      if (as.numeric(input$salario_mensual) < 1300000 || input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)") {
+        subsidio_transporte <- 162000
+      } else {
+        subsidio_transporte <- 0
+      }
+      
+      
+      if (input$modalidad_prestacion_servicios == "Interna (vivirá en la residencia en que preste sus servicios)"){
+        # Create a temporary HTML file
+        tempReport <- file.path(tempdir(), "plantilla_interna.Rmd")
+        file.copy("plantilla_interna.Rmd", tempReport, overwrite = T)
+        tempParams <- list(
+                           salario_mensual = input$salario_mensual,
+                           subsidio_transporte = subsidio_transporte
+        )
+        
+        # Render the RMarkdown document to HTML
+        rmarkdown::render(
+          tempReport,
+          output_file = file,
+          params = tempParams,
+          envir = new.env(parent = globalenv())
+        )
+        
+        # Convert the HTML to PDF
+        # pagedown::chrome_print(tempReport, output = file, timeout = 120)
+        
+      } else if (input$tipo_vinculacion == "Fija (es decir, la persona trabajadora doméstica que labora en un solo hogar varios días a la semana" || (input$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)" && input$respuesta_dias == "La persona empleadora")){
+        # Create a temporary HTML file
+        tempReport <- file.path(tempdir(), "plantilla_fija.Rmd")
+        file.copy("plantilla_fija.Rmd", tempReport, overwrite = T)
+        tempParams <- list(
+                           salario_mensual = input$salario_mensual,
+                           subsidio_transporte = subsidio_transporte
+        )
+        
+        # Render the RMarkdown document to HTML
+        rmarkdown::render(
+          tempReport,
+          output_file = file,
+          params = tempParams,
+          envir = new.env(parent = globalenv())
+        )
+        
+        # Convert the HTML to PDF
+        # pagedown::chrome_print(tempReport, output = file, timeout = 120)
+        
+      } else if (input$tipo_vinculacion == "Por días (es decir, la persona trabajadora doméstica que labora en diferentes hogares a la semana y recibe pagos por el día laborado)" && input$respuesta_dias == "La persona trabajadora doméstica") {
+        # Create a temporary HTML file
+        tempReport <- file.path(tempdir(), "plantilla_diasIndependiente.Rmd")
+        file.copy("plantilla_diasIndependiente.Rmd", tempReport, overwrite = T)
+        tempParams <- list(
+                           salario_mensual = input$salario_mensual,
+                           subsidio_transporte = subsidio_transporte
+        )
+        
+        # Render the RMarkdown document to HTML
+        rmarkdown::render(
+          tempReport,
+          output_file = file,
+          params = tempParams,
+          envir = new.env(parent = globalenv())
+        )
+        
+        # Convert the HTML to PDF
+        # pagedown::chrome_print(tempReport, output = file, timeout = 120)
+      }
+    }
+  )
+  
+  ######################## Go Back To Info Contrato #######################
+  observeEvent(input$volver_plantilla, {
+    seen_contract(FALSE)
+    goBackPlantillatInfo(TRUE)
+  })
+  
+  observeEvent(goBackPlantillatInfo(), {
+    if (goBackPlantillatInfo()) {
+      if (input$modalidad_prestacion_servicios == "Interna (vivirá en la residencia en que preste sus servicios)" || input$tipo_vinculacion == "Fija (es decir, la persona trabajadora doméstica que labora en un solo hogar varios días a la semana" || input$respuesta_dias == "La persona empleadora") {
+        contratoDependienteUI(input, output)
+      }
+      else if (input$respuesta_dias == "La persona trabajadora doméstica") {
+        contratoIndependienteUI(input, output)
+      }
+    }
+  })
 
   
   onSessionEnded(function() {
     dbDisconnect(conn)
   })
+  
+  ## Download database
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      "database.sqlite"
+    },
+    content = function(file) {
+      file.copy("user_data.sqlite", file)
+    }
+  )
+  
 }

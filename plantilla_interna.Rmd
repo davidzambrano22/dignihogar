@@ -1,0 +1,57 @@
+---
+title: ""
+output: pdf_document
+params:
+  salario_mensual: ""
+  tiempo_pagos: ""
+  modalidad_pagos: ""
+  tipo_vinculacion: ""
+  subsidio_transporte: ""
+---
+
+<div style="height: 30px;"></div>
+
+### PLANTILLA EDUCATIVA
+\ 
+
+<p style="text-align: justify; font-size: 16px;">
+<b>Salario acordado sin beneficios ni deducciones:</b> `r params$salario_mensual`
+</p>
+
+<p style="text-align: justify; font-size: 16px;">
+<b>Subsidio de transporte:</b> `r ifelse(as.numeric(params$salario_mensual) < 1300000 || params$tipo_vinculacion == "Por días (es decir el trabajador de servicios domestico trabaja en diferentes hogares a la semana y recibe pagos por el día laborado)", as.character(162000), 0)`
+</p>
+
+<div style="height: 30px;"></div>
+
+<p style="text-align: justify; font-size: 16px;">
+<b>Prestaciones Sociales:</b> 
+</p>
+
+<div style="height: 20px;"></div>
+
+```{r, echo=FALSE, results='asis'}
+cat('
+| Rubro                            | Empleador                                    | Trabajador                                | 
+|----------------------------------|----------------------------------------------|-------------------------------------------|
+| **Salud**                        |', format(as.numeric(params$salario_mensual) * 0.085, scientific = FALSE), '|', format(as.numeric(params$salario_mensual) * 0.04, scientific = FALSE), '| 
+| **Pensión**                      |', format(as.numeric(params$salario_mensual) * 0.12, scientific = FALSE), '|', format(as.numeric(params$salario_mensual) * 0.04, scientific = FALSE), '| 
+| **ARL **                  |', format(as.numeric(params$salario_mensual) * 0.00052, scientific = FALSE), '| | 
+| **Caja de compensación (opcional)** |', format(as.numeric(params$salario_mensual) * 0.03, scientific = FALSE), '| | 
+')
+```
+
+
+Salario neto que recibirá el trabajador: `r format((params$salario_mensual - (as.numeric(params$salario_mensual) * 0.04) + as.numeric(params$subsidio_transporte)), scientific = FALSE)`
+
+* **Beneficios:**
+  + Vacaciones pagadas por el empleador: 15 días al año (o proporcional)
+  + Prima: Un salario al año (o proporcional) Medio salario el 30 junio (`r format((as.numeric(params$salario_mensual) / 2), scientific = FALSE)`) Medio salario el 20 diciembre (`r format((as.numeric(params$salario_mensual) / 2), scientific = FALSE)`)
+  + Cesantías: Consignadas al fondo del empleado. Un salario al año (`r format((as.numeric(params$salario_mensual) / 2), scientific = FALSE)`) y 12% de intereses anual  (`r format((as.numeric(params$salario_mensual) * 0.12), scientific = FALSE)`)
+  + Incapacidades y licencias de maternidad cubiertas con la EPS 
+  + Dotaciones dos veces al año (vestuario y calzado 
+  + Acuerdos sobre tiempo de periodo de prueba. 
+  + Alimentación y vivienda como se haya acordado entre las partes. 
+  
+    
+    

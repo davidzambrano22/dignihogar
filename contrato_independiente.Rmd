@@ -1,0 +1,66 @@
+---
+title: ""
+output: pdf_document
+params:
+  nombres_trabajador: ""
+  apellidos_trabajador: ""
+  nombres_empleador: ""
+  apellidos_empleador: ""
+  direccion_trabajo: ""
+  salario_mensual: ""
+  tiempo_pagos: ""
+  modalidad_pagos: ""
+  dia: ""
+  mes: ""
+  ano: ""
+  dia_inicio: ""
+  mes_inicio: ""
+  ano_inicio: ""
+---
+
+
+## CONTRATO DE TRABAJO ENTRE **`r params$nombres_trabajador`** **`r params$apellidos_trabajador`** **Y** **`r params$nombres_empleador`** **`r params$apellidos_empleador`**
+\ 
+
+Entre las partes, por un lado `r params$nombres_empleador` `r params$apellidos_empleador`, quien en adelante y para los efectos del presente contrato se denomina EL EMPLEADOR, y por el otro, `r params$nombres_trabajador` `r params$apellidos_trabajador`, quien en adelante y para los efectos del presente contrato se denomina EL TRABAJADOR, identificados como aparece al pie de las firmas, hemos acordado suscribir este contrato de trabajo, el cual se regirá por las siguientes cláusulas:
+
+**Primera:** Objeto. El presente es un contrato de trabajo tiene por finalidad la prestación de servicios domésticos por parte del TRABAJADOR en la forma y condiciones previstas por el EMPLEADOR.  
+
+
+**Segunda:** Lugar de prestación del servicio. La prestación del servicio la hará el TRABAJADOR en la `r params$direccion_trabajo`  
+
+
+**Tercera:** El EMPLEADOR deberá pagar al TRABAJADOR, a título de remuneración por las actividades un monto de `r params$salario_mensual`  
+
+La forma de pago del salario señalado se hará directamente por el EMPLEADOR al TRABAJADOR, así: `r params$tiempo_pagos`. El pago se hará `r params$modalidad_pagos`  
+
+Parágrafo 1. El EMPLEADOR deberá pagar al TRABAJADOR todas las prestaciones sociales establecidas por ley.  
+
+Parágrafo 2. El TRABAJADOR De igual forma, deberá hacer los aportes de seguridad social en salud, pensión y riesgos laborales, en proporción a los días trabajados y conforme al salario recibido. Esto sin perjuicio que el trabajador esté afiliado al Sisbén.  
+
+**Cuarta:** Obligaciones de las partes:
+
+* **Obligaciones del EMPLEADOR:**
+  + Pagar en la forma prevista al TRABAJADOR el salario.
+  + Respetar las condiciones.
+
+* **Obligaciones del TRABAJADOR:**
+  + Recibir, según lo pactado, el salario
+  + Desempeñar las actividades propias del objeto, entre las cuales se encuentran:
+    - Barrer, trapear y encerar pisos de instalaciones domésticas.
+    - Limpiar, brillar y sellar, puertas, muebles, ventanas y otros accesorios de instalaciones domésticas.
+    - Lavar, planchar y remendar lencería, ropa de cama y prendas de uso personal.
+    - Preparar, cocinar y servir alimentos y bebidas en instalaciones domésticas.
+    - Lavar vajillas y utensilios de cocina en instalaciones domésticas.
+    - Lavar, desinfectar y desodorizar cocinas, cuartos de baño, muebles y enseres en casas de familia.
+    - Tender camas, cambiar sábanas, poner toallas limpias y artículos de tocador en instalaciones domésticas.
+    - Desempolvar y aspirar muebles, alfombras, tapetes, cortinas y tapizados en instalaciones domésticas.
+
+**Quinta:** Terminación del contrato. Este contrato podrá terminar unilateralmente por cualquiera de las partes, si se configuran algunas situaciones previstas en el artículo 62 del Código Sustantivo del Trabajo.  
+
+**Sexta:** Vigencia. Este contrato estará vigente a partir de los días `r params$dia_inicio` del mes de `r params$mes_inicio` del `r params$ano_inicio`.  
+
+
+Se firma a los `r params$dia` del mes de `r params$mes` del `r params$ano`.
+\ 
+\ 
